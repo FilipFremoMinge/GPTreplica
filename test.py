@@ -1,7 +1,15 @@
-from langchain.chains.conversation.memory import ConversationBufferMemory
-from langchain import OpenAI
-from langchain.chains import ConversationChain
+def prompt_chatbot(specific_paragraph: int = ""):
+    prompt_path = "prompt.txt"
 
-llm = OpenAI(model_name="text-davinci-003", temperature=0, max_tokens=256)
-memory = ConversationBufferMemory()
-conversation = ConversationChain(llm=llm, verbose=True, memory=memory)
+    with open(prompt_path, "r") as file:
+        full_prompt = file.read()
+        paragraphs = full_prompt.split("\n\n")
+
+    if specific_paragraph == "":
+        return paragraphs
+
+    elif specific_paragraph > len(paragraphs):
+        return paragraphs
+
+    else:
+        return paragraphs[specific_paragraph]
