@@ -56,7 +56,7 @@ class ChatBot:
         self.chat = ChatOpenAI(temperature=0)
         # set default model
         if "openai_model" not in st.session_state:
-            st.session_state["openai_model"] = "gpt-3.5-turbo"
+            st.session_state["openai_model"] = "gpt-4"
 
         self.memory = ConversationBufferMemory(
             memory_key="chat_history", return_messages=True
@@ -64,7 +64,7 @@ class ChatBot:
         self.memory.load_memory_variables({})
         prompt = ChatPromptTemplate(
             messages=[
-                SystemMessagePromptTemplate.from_template(self.prompt_chatbot(0)),
+                SystemMessagePromptTemplate.from_template(self.prompt_chatbot()),
                 MessagesPlaceholder(variable_name="chat_history"),
                 HumanMessagePromptTemplate.from_template("{question}"),
             ]
@@ -78,12 +78,9 @@ class ChatBot:
 
     def chat_loop(self):
         # update the ui
-        i = 0
         for message in st.session_state.messages:
             with st.chat_message(message["role"], avatar=message["avatar"]):
                 st.markdown(message["content"])
-                print(i)
-                i += 1
 
         # actual chat loop
         if user_input := st.chat_input("enter your prompt"):
