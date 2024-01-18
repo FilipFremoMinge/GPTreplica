@@ -29,7 +29,7 @@ class ChatBot:
         # self.display_messages()
 
     def prompt_chatbot(self, specific_paragraph: int = ""):
-        prompt_path = "prompt_alter.txt"
+        prompt_path = "prompt.txt"
 
         with open(prompt_path, "r") as file:
             full_prompt = file.read()
@@ -45,15 +45,21 @@ class ChatBot:
             return paragraphs[specific_paragraph]
 
     def set_up(self):
+        self.client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        self.chat = ChatOpenAI(temperature=0)
+
         self.bot_image = Image.open(f"images/co-thinker_logo.png")
         self.user_image = "👨‍💻"
+
         st.image(self.bot_image, width=110)
         st.title("Perspective Circle co-thinker")
         st.header(
             "A 5-step tool to facilitate sustainable decision making by embracing the perspective of multiple stakeholders."
         )
-        self.client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-        self.chat = ChatOpenAI(temperature=0)
+        st.caption(
+            "You can start by stating your current role and the industry you work in."
+        )
+
         # set default model
         if "openai_model" not in st.session_state:
             st.session_state["openai_model"] = "gpt-4"
@@ -94,6 +100,7 @@ class ChatBot:
             with st.chat_message("assistant", avatar=self.bot_image):
                 message_placeholder = st.empty()
                 full_response = ""
+                print(self.conversation.dict())
                 assistant_response = self.conversation.dict()["memory"]["chat_memory"][
                     "messages"
                 ][1]["content"]
