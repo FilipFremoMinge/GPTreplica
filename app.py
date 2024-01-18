@@ -29,7 +29,7 @@ class ChatBot:
         # self.display_messages()
 
     def prompt_chatbot(self, specific_paragraph: int = ""):
-        prompt_path = "prompt.txt"
+        prompt_path = "prompt_alter.txt"
 
         with open(prompt_path, "r") as file:
             full_prompt = file.read()
@@ -78,10 +78,12 @@ class ChatBot:
 
     def chat_loop(self):
         # update the ui
+        i = 0
         for message in st.session_state.messages:
             with st.chat_message(message["role"], avatar=message["avatar"]):
                 st.markdown(message["content"])
-                print(message)
+                print(i)
+                i += 1
 
         # actual chat loop
         if user_input := st.chat_input("enter your prompt"):
