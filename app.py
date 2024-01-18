@@ -1,21 +1,6 @@
 import streamlit as st
 from openai import OpenAI
-
-# from langchain.chat_models import ChatOpenAI
-from langchain_community.chat_models import ChatOpenAI
-from langchain.schema import HumanMessage, SystemMessage, AIMessage
-
-from langchain.memory import ConversationBufferMemory
-from langchain.chains import LLMChain
-from langchain.prompts import (
-    ChatPromptTemplate,
-    HumanMessagePromptTemplate,
-    MessagesPlaceholder,
-    SystemMessagePromptTemplate,
-)
-
-
-from streamlit_chat import message
+import openai
 
 from PIL import Image
 import time
@@ -45,8 +30,9 @@ class ChatBot:
             return paragraphs[specific_paragraph]
 
     def set_up(self):
+        self.client = openai.Client(api_key=st.secrets["OPENAI_API_KEY"])
+        # streamlit set up
         self.client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-        self.chat = ChatOpenAI(temperature=0)
 
         self.bot_image = Image.open(f"images/co-thinker_logo.png")
         self.user_image = "👨‍💻"
@@ -60,29 +46,34 @@ class ChatBot:
             "You can start by stating your current role and the industry you work in."
         )
 
-        # set default model
-        if "openai_model" not in st.session_state:
-            st.session_state["openai_model"] = "gpt-4"
-
-        self.memory = ConversationBufferMemory(
-            memory_key="chat_history", return_messages=True
-        )
-        self.memory.load_memory_variables({})
-        prompt = ChatPromptTemplate(
-            messages=[
-                SystemMessagePromptTemplate.from_template(self.prompt_chatbot()),
-                MessagesPlaceholder(variable_name="chat_history"),
-                HumanMessagePromptTemplate.from_template("{question}"),
-            ]
-        )
-        self.conversation = LLMChain(
-            llm=self.chat, prompt=prompt, memory=self.memory, verbose=True
-        )
         # initialize chat history
         if "messages" not in st.session_state:
             st.session_state.messages = []
 
+    def check_run(self, client, thread_id, run_id):
+        while True:
+            # Refresh the run object to get the latest status
+            run = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run_id)
+
+            if run.status == "completed":
+                print(f"Run is completed.")
+                break
+            elif run.status == "expired":
+                print(f"Run is expired")
+                break
+            else:
+                print(f"OpenAI: Run is not yet completed. Waiting...{run.status} ")
+                time.sleep(3)
+
     def chat_loop(self):
+        # call the assistant
+        assistant = self.client.beta.assistants.create(
+            name="Perspective_Circle",
+            instructions=self.prompt_chatbot(),
+            model="gpt-4-1106-preview",
+        )
+        thread = self.client.beta.threads.create()
+
         # update the ui
         for message in st.session_state.messages:
             with st.chat_message(message["role"], avatar=message["avatar"]):
@@ -95,15 +86,23 @@ class ChatBot:
             )
             with st.chat_message("user", avatar=self.user_image):
                 st.markdown(user_input)
-                self.conversation({"question": user_input})
+                # send and retrieve msg to assistant
+                msg = self.client.beta.threads.messages.create(
+                    thread_id=thread.id, role="user", content=user_input
+                )
+                run = self.client.beta.threads.runs.create(
+                    thread_id=thread.id,
+                    assistant_id=assistant.id,
+                )
+                self.check_run(self.client, thread.id, run.id)
+                all_msg = self.client.beta.threads.messages.list(thread_id=thread.id)
+                # self.conversation({"question": user_input})
 
             with st.chat_message("assistant", avatar=self.bot_image):
                 message_placeholder = st.empty()
                 full_response = ""
-                print(self.conversation.dict())
-                assistant_response = self.conversation.dict()["memory"]["chat_memory"][
-                    "messages"
-                ][1]["content"]
+
+                assistant_response = all_msg.data[0].content[0].text.value
                 for chunk in assistant_response.split():
                     full_response += chunk + " "
                     time.sleep(0.05)

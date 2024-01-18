@@ -1,6 +1,7 @@
 config.ini
 .streamlit/
 test.py
+not_prompt.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
