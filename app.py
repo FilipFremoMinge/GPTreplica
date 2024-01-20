@@ -34,7 +34,7 @@ class ChatBot:
         # streamlit set up
         self.client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-        self.bot_image = "🐓"
+        self.bot_image = ""
         self.user_image = "👨‍💻"
 
         # st.image(self.bot_image, width=110)
