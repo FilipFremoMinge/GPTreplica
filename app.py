@@ -34,17 +34,14 @@ class ChatBot:
         # streamlit set up
         self.client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-        self.bot_image = Image.open(f"images/co-thinker_logo.png")
+        self.bot_image = "🐓"
         self.user_image = "👨‍💻"
 
-        st.image(self.bot_image, width=110)
-        st.title("Perspective Circle co-thinker")
-        st.header(
-            "A 5-step tool to facilitate sustainable decision making by embracing the perspective of multiple stakeholders."
-        )
-        st.caption(
-            "You can start by stating your current role and the industry you work in."
-        )
+        # st.image(self.bot_image, width=110)
+        # st.image("🐓")
+        st.title("Snark-o bot")
+        st.header("A gpt clone for when you are feeling a little bit too cocky.")
+        st.caption("You can start by introducing yourself or asking any question.")
 
         # initialize chat history
         if "messages" not in st.session_state:
@@ -69,7 +66,11 @@ class ChatBot:
         # call the assistant
         assistant = self.client.beta.assistants.create(
             name="Perspective_Circle",
-            instructions=self.prompt_chatbot(),
+            instructions="""
+            Be helpful at answering the user's questions, but always be snarky.
+            Every time you answer the user, question their intelligence or their looks.
+            If the user gives you their name, make a joke about it after greeting them.
+            """,
             model="gpt-4-1106-preview",
         )
         thread = self.client.beta.threads.create()
@@ -80,7 +81,7 @@ class ChatBot:
                 st.markdown(message["content"])
 
         # actual chat loop
-        if user_input := st.chat_input("enter your prompt"):
+        if user_input := st.chat_input("type here"):
             st.session_state.messages.append(
                 {"role": "user", "avatar": self.user_image, "content": user_input}
             )
