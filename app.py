@@ -34,11 +34,10 @@ class ChatBot:
         # streamlit set up
         self.client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-        self.bot_image = ""
+        self.bot_image = Image.open(f"images/rooster.webp")
         self.user_image = "👨‍💻"
 
-        # st.image(self.bot_image, width=110)
-        # st.image("🐓")
+        st.image(self.bot_image, width=110)
         st.title("Snark-o bot")
         st.header("A gpt clone for when you are feeling a little bit too cocky.")
         st.caption("You can start by introducing yourself or asking any question.")
